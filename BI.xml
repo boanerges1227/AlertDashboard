@@ -1,0 +1,791 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Ubuntu Server LTS for ARM64 Containers) 2021.1 (Build 205U)" ts="2021-09-03 11:38:00">
+<Class name="BI.DeepSee.AlertKPI">
+<IncludeCode>Ensemble</IncludeCode>
+<Super>%DeepSee.KPI</Super>
+<System>4</System>
+<TimeChanged>65990,41824.844725</TimeChanged>
+<TimeCreated>63424,66726.033208</TimeCreated>
+
+<Parameter name="DOMAIN">
+<Default>Ensemble</Default>
+</Parameter>
+
+<Parameter name="RESOURCE">
+<Default>%Ens_Dashboard</Default>
+</Parameter>
+
+<XData name="KPI">
+<XMLNamespace>http://www.boanerges1227.com/deepsee/kpi</XMLNamespace>
+<Data><![CDATA[
+<kpi xmlns="http://www.intersystems.com/deepsee/kpi"
+ name="BI/DeepSee/AlertKPI "
+ sourceType="manual"
+ caption="AlertKPI"
+>
+<property name="hospitalID"/>
+<property name="HospitalName"/>
+<property name="context"/>
+<property name="type"/>
+<property name="createTime"/>
+<property name="sessionId"/>
+<property name="sourceConfigName"/>
+</kpi>
+]]></Data>
+</XData>
+
+<Method name="%OnLoadKPI">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	//to-do coding........
+]]></Implementation>
+</Method>
+
+<Method name="%OnDashboardAction">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pAction:%String,pContext:%ZEN.proxyObject</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	// pAction is the name of the action (as defined in the XML list).
+	// pContext contains information from the client
+	// and can be used to return information.
+	Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="BI.DeepSee.DashbordMetrics">
+<ClassType/>
+<ProcedureBlock>1</ProcedureBlock>
+<Super>Ens.BusinessMetric</Super>
+<TimeChanged>65990,41301.684998</TimeChanged>
+<TimeCreated>65990,20104.637529</TimeCreated>
+
+<Property name="HospitalCount">
+<Type>Ens.DataType.Metric</Type>
+<MultiDimensional>1</MultiDimensional>
+<Parameter name="AUTOHISTORY" value="10"/>
+<Parameter name="RANGELOWER" value="0"/>
+<Parameter name="RANGEUPPER" value="100"/>
+<Parameter name="UNITS" value="Dollars"/>
+</Property>
+
+<Property name="AlertCount">
+<Type>Ens.DataType.Metric</Type>
+<Parameter name="AUTOHISTORY" value="10"/>
+<Parameter name="RANGELOWER" value="0"/>
+<Parameter name="RANGEUPPER" value="10000"/>
+<Parameter name="UNITS" value="Units"/>
+</Property>
+
+<Method name="OnCalculateMetrics">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		do ##class(BI.Util.CreateData).insertData(2)
+		&sql(SELECT COUNT(*) INTO :count FROM BI_TB.AlertMsg)
+		set ..AlertCount = count		 
+		&sql(DECLARE C1 CURSOR FOR 
+			SELECT count(*) as alertCount, a.hospitalID,b.HospitalName INTO :alertCount,:hospitalID,:HospitalName
+			FROM BI_TB.AlertMsg a,BI_TB.HOSPITAL b
+			where a.hospitalID=b.ID
+			group by a.hospitalID)
+  		&sql(OPEN C1)
+  		&sql(FETCH C1)
+ 		WHILE (SQLCODE = 0) {	 		
+    		 if ..%Instance=HospitalName{
+	    		 set ..HospitalCount=alertCount	 
+	    		 $$$LOGINFO(..%Instance_"  "_..AlertCount_""_..HospitalCount)   		 
+    		 }  		 
+    	&sql(FETCH C1)}
+ 		&sql(CLOSE C1)
+
+		
+		Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="OnGetInstances">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[&pInstSet:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Set pInstSet(1) = "Hospital-A"
+	Set pInstSet(2) = "Hospital-B"
+	Set pInstSet(3) = "Hospital-C"
+	Set pInstSet(4) = "Hospital-D"
+	Set pInstSet(5) = "Hospital-E"
+	Set pInstSet(7) = "Hospital-F"	 	 
+	Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="BI.PD.AlertProduction">
+<Super>Ens.Production</Super>
+<TimeChanged>65990,26053.882253</TimeChanged>
+<TimeCreated>65990,22235.571468</TimeCreated>
+
+<XData name="ProductionDefinition">
+<Data><![CDATA[
+<Production Name="BI.PD.AlertProduction" LogGeneralTraceEvents="false">
+  <Description></Description>
+  <ActorPoolSize>2</ActorPoolSize>
+  <Item Name="BI.DeepSee.DashbordMetrics" Category="" ClassName="BI.DeepSee.DashbordMetrics" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+    <Setting Target="Adapter" Name="CallInterval">5</Setting>
+  </Item>
+</Production>
+]]></Data>
+</XData>
+</Class>
+
+
+<Class name="BI.TB.AlertMsg">
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeChanged>65990,40552.010186</TimeChanged>
+<TimeCreated>64950,39369.461291</TimeCreated>
+
+<Parameter name="DSTIME">
+<Default>AUTO</Default>
+</Parameter>
+
+<Property name="hospitalID">
+<Description>
+医院ID</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="UserNameList">
+<Description>
+订阅人姓名列表</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="type">
+<Description>
+错误级别 0告警，1错误，2严重
+严重错误通知主管及研发</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="context">
+<Description>
+错误正文</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN"/>
+</Property>
+
+<Property name="createTime">
+<Description>
+创建时间</Description>
+<Type>Ens.DataType.UTC</Type>
+</Property>
+
+<Property name="sessionId">
+<Description>
+发生警报的会话</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="sourceConfigName">
+<Description>
+发送警报的业务主机的名称</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN" value="128"/>
+</Property>
+
+<Property name="destination">
+<Description>
+用于指定此警报消息的外部目标的字段</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN"/>
+</Property>
+
+<Property name="WXID">
+<Description>
+发送目标的微信ID，多个以英文的逗号分隔</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN"/>
+</Property>
+
+<Property name="WJID">
+<Description>
+发送目标的ID，多个以英文的逗号分隔</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN"/>
+</Property>
+
+<Property name="DDID">
+<Description>
+发送目标的钉钉ID，多个以英文的逗号分隔</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN"/>
+</Property>
+
+<Property name="UserTelList">
+<Description>
+发送目标的电话号码列表，多个以英文的逗号分隔</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN"/>
+</Property>
+
+<Property name="UserEmailList">
+<Description>
+发送目标的Email列表，多个以英文的逗号分隔</Description>
+<Type>%String</Type>
+<Parameter name="MAXLEN"/>
+</Property>
+
+<Storage name="Default">
+<Type>%Storage.Persistent</Type>
+<DataLocation>^BI.TB.AlertMsgD</DataLocation>
+<DefaultData>AlertMsgDefaultData</DefaultData>
+<IdLocation>^BI.TB.AlertMsgD</IdLocation>
+<IndexLocation>^BI.TB.AlertMsgI</IndexLocation>
+<StreamLocation>^BI.TB.AlertMsgS</StreamLocation>
+<Data name="AlertMsgDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>hospitalID</Value>
+</Value>
+<Value name="3">
+<Value>UserNameList</Value>
+</Value>
+<Value name="4">
+<Value>type</Value>
+</Value>
+<Value name="5">
+<Value>context</Value>
+</Value>
+<Value name="6">
+<Value>createTime</Value>
+</Value>
+<Value name="7">
+<Value>sessionId</Value>
+</Value>
+<Value name="8">
+<Value>sourceConfigName</Value>
+</Value>
+<Value name="9">
+<Value>destination</Value>
+</Value>
+<Value name="10">
+<Value>WXID</Value>
+</Value>
+<Value name="11">
+<Value>WJID</Value>
+</Value>
+<Value name="12">
+<Value>DDID</Value>
+</Value>
+<Value name="13">
+<Value>UserTelList</Value>
+</Value>
+<Value name="14">
+<Value>UserEmailList</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="BI.TB.Hospital">
+<SqlTableName>HOSPITAL</SqlTableName>
+<Super>%Persistent,%XML.Adaptor</Super>
+<TimeChanged>65990,5296.366941</TimeChanged>
+<TimeCreated>64951,57230.846445</TimeCreated>
+
+<Property name="HospitalName">
+<Description>
+医院名称</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="BedCount">
+<Description>
+床位数</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="Levels">
+<Description>
+医院等级</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="Address">
+<Description>
+所在省份</Description>
+<Type>%String</Type>
+</Property>
+
+<Property name="Comment">
+<Description>
+注释</Description>
+<Type>%String</Type>
+</Property>
+
+<Index name="HPK">
+<Data>HospitalName</Data>
+<Properties>HospitalName</Properties>
+<Unique>1</Unique>
+</Index>
+
+<Storage name="Default">
+<Type>%Storage.Persistent</Type>
+<DataLocation>^BI.TB.HospitalD</DataLocation>
+<DefaultData>HospitalDefaultData</DefaultData>
+<IdLocation>^BI.TB.HospitalD</IdLocation>
+<IndexLocation>^BI.TB.HospitalI</IndexLocation>
+<StreamLocation>^BI.TB.HospitalS</StreamLocation>
+<Data name="HospitalDefaultData">
+<Value name="1">
+<Value>%%CLASSNAME</Value>
+</Value>
+<Value name="2">
+<Value>HospitalName</Value>
+</Value>
+<Value name="3">
+<Value>BedCount</Value>
+</Value>
+<Value name="4">
+<Value>Levels</Value>
+</Value>
+<Value name="5">
+<Value>Address</Value>
+</Value>
+<Value name="6">
+<Value>Comment</Value>
+</Value>
+</Data>
+</Storage>
+</Class>
+
+
+<Class name="BI.Util.CreateData">
+<Super>%RegisteredObject</Super>
+<TimeChanged>65990,23051.368457</TimeChanged>
+<TimeCreated>65990,8211.264246</TimeCreated>
+
+<Method name="insertData">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>count:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+		;insert into BI_TB.AlertMsg(DDID, UserEmailList, UserNameList, UserTelList, WJID, WXID, context, createTime, destination, hospitalID, sessionId, sourceConfigName, type) value()
+		set i=count
+		set tSC=$$$OK
+ 		FOR { 
+        	set i=i-1       	
+        	q:i=0
+			set alertMsg=##class(BI.TB.AlertMsg).%New()
+			set hospitalID=$RANDOM(7)
+			set alertMsg.hospitalID=$Select(hospitalID'="0":hospitalID,hospitalID="0":"1")
+			set alertMsg.context="错误 <Ens>ErrOutConnectExpired: 10.10.10.1: 的 TCP 连接超时期 (5) 已过"
+			set alertMsg.createTime=##class(Ens.DataType.UTC).timeUTCtoLocal($ZDT($H,3))
+			set alertMsg.sessionId=$RANDOM(1000000)
+			set tSC=alertMsg.%Save()
+			w i,!
+		 }
+		 q tSC
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="BI.ZEN.HospitalTable">
+<Super>%ZEN.Component.page</Super>
+<TimeChanged>65990,41714.022235</TimeChanged>
+<TimeCreated>64952,44368.392792</TimeCreated>
+
+<Parameter name="APPLICATION">
+</Parameter>
+
+<Parameter name="PAGENAME">
+<Default>Hospital List</Default>
+</Parameter>
+
+<Parameter name="DOMAIN">
+</Parameter>
+
+<XData name="Style">
+<Data><![CDATA[
+<style type="text/css">
+.labelText {
+	padding: 2px;
+	background: white;
+	color: darkblue;
+	border: 1px solid black;
+	height: 1.0em;
+	width: 12.0em;
+}
+
+#table {
+	border: 1px solid darkblue;
+}
+#title {
+    color: #cbdbeb;
+    font-family: "微软雅黑";
+    background: #2a3f54;
+}
+.lookoutButton {
+    font-weight: normal;
+    font-family: "微软雅黑";
+    border: none;
+    background: #1abb9c;
+}
+ table.tpTable caption {
+    border: none;
+    background: #ccc;
+    color: #fff;
+}
+table.tpTable th {
+    border-right: none;
+    border-bottom:none;
+    background: #abbbca;
+    color: #fff;
+}
+table.tpTable td {
+    border-right: none;
+}
+.fieldSetDisabled {
+    color: #101010;
+    background: #eee;
+}
+.fieldSetDisabled legend {
+    color: #101010;
+    background: #eee;
+    font-size: 20px;
+}
+.tpEven {
+    color: darkblue;
+    background: #c4e3f3;
+}
+
+</style>
+]]></Data>
+</XData>
+
+<XData name="Contents">
+<Description>
+This XML defines the contents of this page.</Description>
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<page xmlns="http://www.intersystems.com/zen"  title="客户信息维护">
+
+<hgroup>
+<vgroup valign="top">
+<hgroup width="100%">
+<tablePane id="table" 
+	caption="客户信息维护"
+	tableName="BI_TB.HOSPITAL"
+	useSnapshot="true"
+	
+	showFilters="true"
+	fixedHeaders="true"
+	multiSelect="false"
+	bodyHeight="15.0em"
+	ondblclick="alert(zenThis.getProperty('selectedIndex'));"
+	filtersDisabled="false"
+	autoExecute="true"
+
+	showZebra="true"
+	pageSize="10"
+	showRowNumbers="true"
+	valueColumn="ID"
+	maxRows="10000"
+	useKeys="true"
+
+	onupdate="zenPage.updatePagingInfo();"
+	
+	>
+<parameter id="P1" value="B"/>
+<column colName="ID" hidden="true"/>
+
+<column header="客户名称" colName="HospitalName" id="HospitalNameColumn"  width="35%" filterType="text" />
+<column header="等级" colName="Levels" id="Levels"  width="35%" filterType="text" />
+<column header="床位数" colName="BedCount" id="BedCount"  width="35%" filterType="text" />
+<column header="所在省份" colName="Address" id="Address"  width="35%" filterType="text" />
+<column header="备注" colName="Comment" width="30%" cellTitle="备注信息"/>
+<column header="操作"  linkCaption="编辑" width="10%"  onclick="zenPage.rowEdit()" link="#" cellTitle="编辑这条数据" />
+<condition colName="Name" predicate="CONTAINS" value="K" rowStyle="background: #A0A0F0;"/>
+<condition colName="Active" predicate="EQ" value="1" rowStyle="font-weight: bold;"/>
+</tablePane>
+</hgroup>
+<tableNavigator tablePaneId="table"/>
+<spacer height="5"/>
+</vgroup>
+</hgroup>
+
+</page>
+]]></Data>
+</XData>
+
+<Method name="%OnDrawHTMLBody">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Write "<!-- GETIO ",$$$GETIO," -->",!
+	Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="BI.ZEN.MsgTabel">
+<Super>%ZEN.Component.page</Super>
+<TimeChanged>65990,9481.690345</TimeChanged>
+<TimeCreated>64952,44368.392792</TimeCreated>
+
+<Parameter name="APPLICATION">
+</Parameter>
+
+<Parameter name="PAGENAME">
+<Default>Table Pane Test Page</Default>
+</Parameter>
+
+<Parameter name="DOMAIN">
+</Parameter>
+
+<XData name="Style">
+<Data><![CDATA[
+<style type="text/css">
+.labelText {
+	padding: 2px;
+	background: white;
+	color: darkblue;
+	border: 1px solid black;
+	height: 1.0em;
+	width: 12.0em;
+}
+
+#table {
+	border: 1px solid darkblue;
+}
+ table.tpTable caption {
+    border: none;
+    background: #ccc;
+    color: #fff;
+}
+table.tpTable th {
+    border-right: none;
+    border-bottom:none;
+    background: #abbbca;
+    color: #fff;
+}
+table.tpTable td {
+    border-right: none;
+    font-weight: normal;
+    font-size:12px;
+    font-family: "微软雅黑";
+}
+.fieldSetDisabled {
+    color: #101010;
+    background: #eee;
+}
+.fieldSetDisabled legend {
+    color: #101010;
+    background: #eee;
+    font-size: 20px;
+}
+.tpEven {
+    color: darkblue;
+    background: #c4e3f3;
+}
+
+</style>
+]]></Data>
+</XData>
+
+<XData name="Contents">
+<Description>
+This XML defines the contents of this page.</Description>
+<XMLNamespace>http://www.intersystems.com/zen</XMLNamespace>
+<Data><![CDATA[
+<page xmlns="http://www.intersystems.com/zen"  title="tablePane Test Page">
+<vgroup>
+<spacer height="5"/>
+<hgroup width="100%">
+<tablePane id="table" 
+	caption="消息展示"
+	tableName="BI_TB.AlertMsg"
+	useSnapshot="true"
+	
+	showFilters="true"
+	fixedHeaders="true"
+	bodyHeight="20.0em"
+	ondblclick="alert(zenThis.getProperty('selectedIndex'));"
+	filtersDisabled="false"
+	autoExecute="true"
+	multiSelect="false"
+	showZebra="true"
+	pageSize="30"
+	showRowNumbers="true"
+	valueColumn="ID"
+	maxRows="10000"
+	useKeys="true"
+	 
+	onupdate="zenPage.updatePagingInfo();"
+	onselectrow="zenPage.rowSelected(zenThis);"
+	onunselectrow="zenPage.rowUnselected(zenThis);"
+	
+	>
+<parameter id="P1" value="B"/>
+<column colName="ID" hidden="true"/>
+<column header="事件时间" colName="createTime"   width="10%" filterType="text"  />
+<column header="医院名称" colName="hospitalID"  width="15%" filterType="text"  filterOp="%STARTSWITH" />
+<column header="告警组件"  colName="sourceConfigName" width="10%"  />
+<column header="告警内容"  colName="context" width="40%"  title="true"/>
+<column header="会话ID" colName="sessionId" width="8%" cellTitle="备注信息" />
+<column header="接收人" colName="UserNameList"  width="10%" filterType="text"  filterOp="["/>
+
+<!-->
+<column header="钉钉ID" colName="DDID" width="20%" filterType="text" filterOp="%STARTSWITH"	/>
+<column header="微信ID" colName="WXID" id="wxColumn"  width="20%" filterType="text" 	filterOp="%STARTSWITH"/>
+<column header="电话号码"  colName="UserTelList" width="10%" 	filterType="text" />
+<column header="Email"  colName="UserEmailList" width="10%" filterType="text" />
+<-->
+<condition colName="Name" predicate="CONTAINS" value="K" rowStyle="background: #A0A0F0;"/>
+<condition colName="Active" predicate="EQ" value="1" rowStyle="font-weight: bold;"/>
+</tablePane>
+</hgroup>
+<tableNavigator tablePaneId="table"/>
+<spacer height="5"/>
+</vgroup>
+<spacer width="25"/>
+</page>
+]]></Data>
+</XData>
+
+<Method name="CreateRS">
+<Description><![CDATA[
+Create the result set used by the table pane.
+<var>pInfo</var> holds details on how to create the query.]]></Description>
+<FormalSpec>*tSC:%Status,pInfo:%ZEN.Auxiliary.QueryInfo</FormalSpec>
+<ReturnType>%ResultSet</ReturnType>
+<Implementation><![CDATA[
+	Set tRS = ""
+	Set tSC = $$$OK
+	
+	Set tTOP = "TOP 10000"
+	Set tSELECT = "ID, Comment, UserDDID, UserEmail, UserID, UserIdentity, UserName, UserTel, UserType, UserWXID"
+	Set tFROM = "JHIP_Project_TB.USERS"
+	Set tORDERBY = pInfo.sortColumn
+	Set tSORTORDER = pInfo.sortOrder
+	Set tWHERE = ""
+
+	// Build WHERE clause based on filters
+	If ($G(pInfo.filters("UserName"))'="") {
+		;Set tWHERE = tWHERE _ $S(tWHERE="":"",1:" AND ") _ "UserName %MATCHES '" _ pInfo.filters("UserName") _ "'"
+	}
+	If ($G(pInfo.filters("UserID"))'="") {
+		Set tWHERE = tWHERE _ $S(tWHERE="":"",1:" AND ") _ "UserID %MATCHES '" _ pInfo.filters("UserID") _ "'"
+	}
+	If ($G(pInfo.filters("UserTel"))'="") {
+		Set tWHERE = tWHERE _ $S(tWHERE="":"",1:" AND ") _ "UserTel %STARTSWITH '" _ pInfo.filters("UserTel") _ "'"
+	}
+	If ($G(pInfo.filters("UserWXID"))'="") {
+		Set tWHERE = tWHERE _ $S(tWHERE="":"",1:" AND ") _ "UserWXID %STARTSWITH '" _ pInfo.filters("UserWXID") _ "'"
+	}
+
+	Set sql = "SELECT " _ tTOP _ " " _ tSELECT _ " FROM " _ tFROM
+	Set:tWHERE'="" sql = sql _ " WHERE " _tWHERE
+	Set:tORDERBY'="" sql = sql _ " ORDER BY " _tORDERBY _ $S(tSORTORDER="desc":" desc",1:"")
+
+	Set tRS = ##class(%ResultSet).%New()
+	Set tSC = tRS.Prepare(sql)
+	Set pInfo.queryText = sql
+	
+	Set pInfo.rowCount = "UNKNOWN" // !!!
+	
+	Quit tRS
+]]></Implementation>
+</Method>
+
+<Method name="%OnAfterCreatePage">
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+
+
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="rowSelected">
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+</Method>
+
+<Method name="setTitleFilter">
+<Description>
+User click on custom title filter</Description>
+<FormalSpec>value</FormalSpec>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var table = this.getComponentById('table');
+	table.setFilterValue('Title',value);
+	table.applyFilters();
+]]></Implementation>
+</Method>
+
+<Method name="refreshTable">
+<Description>
+Refresh contents of the table</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var table = this.getComponentById('table');
+	table.setProperty('parameters',1,'C');
+]]></Implementation>
+</Method>
+
+<Method name="restoreFilters">
+<Description>
+Restore saved set of filter values.</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var table = this.getComponentById('table');
+	
+	if (null == this.filterState) {
+		alert('No saved filter state found.');
+	}
+	else {
+		table.setColumnFilters(this.filterState);
+	}
+]]></Implementation>
+</Method>
+
+<Method name="rowUnselected">
+<Description>
+User unselected the current row in the table</Description>
+<Language>javascript</Language>
+<ClientMethod>1</ClientMethod>
+<Implementation><![CDATA[
+	var table = this.getComponentById('table');
+	var ctrl = this.getComponentById('selectedIndex');
+	var idx = table.getProperty('selectedIndex');
+	if (idx<0) {
+		ctrl.setValue("");
+		var ctrl = this.getComponentById('value');
+		ctrl.setValue("");
+	}
+]]></Implementation>
+</Method>
+
+<Method name="%OnDrawHTMLBody">
+<Description><![CDATA[
+This callback is called at the start of the HTML BODY section of the page.<br>
+(default implementation is a simple expression).]]></Description>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	Write "<!-- GETIO ",$$$GETIO," -->",!
+	Quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+</Export>
