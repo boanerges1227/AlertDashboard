@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for UNIX (Ubuntu Server LTS for ARM64 Containers) 2021.1 (Build 205U)" ts="2021-09-03 11:38:00">
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Ubuntu Server LTS for ARM64 Containers) 2021.1 (Build 205U)" ts="2021-09-03 12:12:18">
 <Class name="BI.DeepSee.AlertKPI">
 <IncludeCode>Ensemble</IncludeCode>
 <Super>%DeepSee.KPI</Super>
 <System>4</System>
-<TimeChanged>65990,41824.844725</TimeChanged>
+<TimeChanged>65990,43196.939946</TimeChanged>
 <TimeCreated>63424,66726.033208</TimeCreated>
 
 <Parameter name="DOMAIN">
@@ -36,7 +36,9 @@
 
 <Method name="%OnLoadKPI">
 <ReturnType>%Status</ReturnType>
-<Implementation><![CDATA[	//to-do coding........
+<Implementation><![CDATA[
+	//to-do coding........
+	q $$$OK
 ]]></Implementation>
 </Method>
 
