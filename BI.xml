@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for UNIX (Ubuntu Server LTS for ARM64 Containers) 2021.1 (Build 205U)" ts="2021-09-03 12:12:18">
+<Export generator="IRIS" version="26" zv="IRIS for UNIX (Ubuntu Server LTS for ARM64 Containers) 2021.1 (Build 205U)" ts="2021-09-04 11:45:05">
 <Class name="BI.DeepSee.AlertKPI">
 <IncludeCode>Ensemble</IncludeCode>
 <Super>%DeepSee.KPI</Super>
-<System>4</System>
-<TimeChanged>65990,43196.939946</TimeChanged>
+<TimeChanged>65991,33837.269373</TimeChanged>
 <TimeCreated>63424,66726.033208</TimeCreated>
 
 <Parameter name="DOMAIN">
@@ -18,18 +17,20 @@
 <XData name="KPI">
 <XMLNamespace>http://www.boanerges1227.com/deepsee/kpi</XMLNamespace>
 <Data><![CDATA[
-<kpi xmlns="http://www.intersystems.com/deepsee/kpi"
- name="BI/DeepSee/AlertKPI "
- sourceType="manual"
+<kpi name="BI/DeepSee/AlertKPI "
+ sourceType="sql"
  caption="AlertKPI"
+
 >
-<property name="hospitalID"/>
-<property name="HospitalName"/>
-<property name="context"/>
-<property name="type"/>
-<property name="createTime"/>
-<property name="sessionId"/>
-<property name="sourceConfigName"/>
+
+<property name="HospitalName" columnNo="1"/>
+<property name="createTime" columnNo="2"/>
+<property name="context" columnNo="3"/>
+
+<property name="type" columnNo="4"/>
+
+<property name="sessionId" columnNo="5"/>
+<property name="sourceConfigName" columnNo="6"/>
 </kpi>
 ]]></Data>
 </XData>
@@ -37,6 +38,7 @@
 <Method name="%OnLoadKPI">
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	
 	//to-do coding........
 	q $$$OK
 ]]></Implementation>
@@ -50,6 +52,18 @@
 	// pAction is the name of the action (as defined in the XML list).
 	// pContext contains information from the client
 	// and can be used to return information.
+	Quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="%OnGetSQL">
+<FormalSpec><![CDATA[&pSQL:%String]]></FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	 Set pSQL ="SELECT top 50 b.HospitalName ,createTime,context,  destination,  sessionId, sourceConfigName, type	FROM BI_TB.AlertMsg a,BI_TB.HOSPITAL b where a.hospitalID=b.ID order by a.createTime desc"
+
+    
+   
 	Quit $$$OK
 ]]></Implementation>
 </Method>
@@ -144,7 +158,7 @@
 
 <Class name="BI.TB.AlertMsg">
 <Super>%Persistent,%XML.Adaptor</Super>
-<TimeChanged>65990,40552.010186</TimeChanged>
+<TimeChanged>65991,33903.646717</TimeChanged>
 <TimeCreated>64950,39369.461291</TimeCreated>
 
 <Parameter name="DSTIME">
@@ -237,6 +251,10 @@
 <Type>%String</Type>
 <Parameter name="MAXLEN"/>
 </Property>
+
+<Index name="CTindex">
+<Properties>createTime</Properties>
+</Index>
 
 <Storage name="Default">
 <Type>%Storage.Persistent</Type>
