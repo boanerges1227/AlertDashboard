@@ -43,6 +43,8 @@ Property UserTelList As %String(MAXLEN = "");
 /// 发送目标的Email列表，多个以英文的逗号分隔
 Property UserEmailList As %String(MAXLEN = "");
 
+Index CTindex On createTime;
+
 Storage Default
 {
 <Data name="AlertMsgDefaultData">

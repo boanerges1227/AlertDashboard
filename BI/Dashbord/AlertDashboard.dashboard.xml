@@ -38,5 +38,11 @@
   </widget>
   <widget name="小组件4" type="pivot" subtype="pivot" subtypeClass="lineChart" title="" dataSource="BI/DeepSee/AlertKPI .kpi" dataLink="" drillDownDataSource="" width="200" height="200" sidebarContent="" showSidebar="false" sidebarWidth="" maximized="false" homeRowL="4" homeColL="0" colSpanL="8" rowSpanL="6" showToolbar="true" showToolbarBottomBorder="true" showToolbarOnlyWhenMaximized="false" colorToolbar="#F0F0F0" opacityToolbar="1" backgroundColor="#F0F0F0" opacity="1" theme="" dataColorList="">
   </widget>
+  <widget name="小组件5" type="scoreCardWidget" subtype="regular" subtypeClass="" title="" dataSource="BI/DeepSee/AlertKPI .kpi" dataLink="" drillDownDataSource="" width="200" height="200" sidebarContent="" showSidebar="false" sidebarWidth="" maximized="false" homeRowL="4" homeColL="0" colSpanL="8" rowSpanL="6" showToolbar="true" showToolbarBottomBorder="true" showToolbarOnlyWhenMaximized="false" colorToolbar="#F0F0F0" opacityToolbar="1" backgroundColor="#F0F0F0" opacity="1" theme="" dataColorList="">
+    <control name="" action="refresh" target="*" targetProperty="" location="widget" type="timer" controlClass="" timeout="5" label="" title="" value="" text="" readOnly="false" valueList="" displayList="" activeWhen="">
+      <valueRequired>false</valueRequired>
+    </control>
+    <override name="scoreCard">{width:835,selectedSeries:-1,columns:[{display:'itemNo',_type:'scoreCardColumn'},{dataValue:'context',display:'label',label:'HospitalName',showAs:'value',_type:'scoreCardColumn'},{dataValue:'createTime',display:'value',label:'CreateTime',_type:'scoreCardColumn'},{dataValue:'context',headerAlign:'center',label:'New 50 Alert',_type:'scoreCardColumn'},{dataValue:'sessionId',display:'value',format:'###',label:'SessionID',_type:'scoreCardColumn'}],_type:'scoreCard'}</override>
+  </widget>
 </dashboard>
 </Document></Export>
