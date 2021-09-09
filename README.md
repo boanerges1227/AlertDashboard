@@ -8,7 +8,7 @@
 4.  open Management Portal，switch namespace “BI”，
 5.  select【System Explorer】-->【GLOBALS】-->use "import" button,select "export.gof"
 6.  go to production,start "BI.PD.AlertProduction"
-7.  open http://your-ip:port/csp/healthshare/BI/_DeepSee.UserPortal.DashboardViewer.zen?DASHBOARD=BI/Dashbord/AlertDashboard.dashboard
+7.  open SMP in namespace BI Analytics > User Portal >  Alert Dashboard
 8.  success!!!
 ##  Dashboard data is refreshed every 5s
 
