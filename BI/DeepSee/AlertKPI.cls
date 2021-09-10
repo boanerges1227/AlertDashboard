@@ -1,5 +1,3 @@
-Include Ensemble
-
 Class BI.DeepSee.AlertKPI Extends %DeepSee.KPI
 {
 
